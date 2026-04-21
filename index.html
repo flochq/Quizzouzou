@@ -16,7 +16,7 @@
 
     <div class="max-w-md w-full glass rounded-3xl p-8 shadow-2xl text-center">
         <h1 class="text-3xl font-800 mb-2">Initiales <span class="initials-gradient">Challenge</span></h1>
-        <p class="text-slate-400 text-sm mb-6">Trouve une célébrité avec ces initiales</p>
+        <p class="text-slate-400 text-sm mb-6">Trouve une célébrité (Prénom Nom)</p>
 
         <div id="display-initials" class="text-7xl font-bold tracking-tighter mb-8 py-4 bg-slate-800/50 rounded-2xl">
             ??
@@ -28,18 +28,18 @@
                 <p id="score" class="text-xl font-bold">0</p>
             </div>
             <div class="text-right">
-                <p class="text-xs uppercase text-slate-500">Temps</p>
-                <p id="timer" class="text-xl font-bold text-sky-400">15s</p>
+                <p class="text-xs uppercase text-slate-500">Temps restant</p>
+                <p id="timer" class="text-xl font-bold text-sky-400">2:00</p>
             </div>
         </div>
 
         <div class="space-y-4">
-            <input type="text" id="user-input" placeholder="Prénom Nom" 
+            <input type="text" id="user-input" placeholder="Ex: Jean Dujardin" 
                    class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all text-center text-lg">
             
             <button id="btn-action" onclick="handleAction()" 
                     class="w-full bg-sky-500 hover:bg-sky-400 text-white font-bold py-3 rounded-xl transition-all transform active:scale-95">
-                GÉNÉRER
+                COMMENCER LE JEU
             </button>
         </div>
 
@@ -53,7 +53,7 @@
         let currentInitials = "";
         let score = 0;
         let timer;
-        let timeLeft = 120;
+        let timeLeft = 120; // 120 secondes
         let gameActive = false;
 
         const btn = document.getElementById('btn-action');
@@ -61,14 +61,19 @@
         const feedback = document.getElementById('feedback');
         const wikiImg = document.getElementById('wiki-img');
 
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+
         function generateInitials() {
-            const alphabet = "ABCDEFGHIJKLMNOPRST"; // On retire les lettres trop dures (X, Y, Z, Q...)
+            const alphabet = "ABCDEFGHIJKLMNOPRST"; 
             const a = alphabet[Math.floor(Math.random() * alphabet.length)];
             const b = alphabet[Math.floor(Math.random() * alphabet.length)];
             currentInitials = a + b;
             document.getElementById('display-initials').innerText = `${a}.${b}`;
             
-            // Reset UI
             input.value = "";
             input.focus();
             feedback.classList.add('hidden');
@@ -82,44 +87,40 @@
             clearInterval(timer);
             timeLeft = 120;
             gameActive = true;
-            document.getElementById('timer').innerText = timeLeft + "s";
+            document.getElementById('timer').innerText = formatTime(timeLeft);
             
             timer = setInterval(() => {
                 timeLeft--;
-                document.getElementById('timer').innerText = timeLeft + "s";
+                document.getElementById('timer').innerText = formatTime(timeLeft);
                 if (timeLeft <= 0) {
                     endGame("Temps écoulé !");
                 }
             }, 1000);
         }
-async function verifyAnswer() {
-    const val = input.value.trim();
-    if (val.length < 3) return;
 
-    const parts = val.split(" ");
-    if (parts.length < 2) {
-        showFeedback("Il faut un Prénom et un Nom !", "text-yellow-400");
-        return;
-    }
+        async function verifyAnswer() {
+            const val = input.value.trim();
+            if (val.length < 3) return;
 
-    const firstChar = parts[0][0].toUpperCase();
-    const lastChar = parts[parts.length - 1][0].toUpperCase();
-    
-    // On crée les deux combinaisons possibles
-    const combo1 = firstChar + lastChar; // Prénom Nom
-    const combo2 = lastChar + firstChar; // Nom Prénom
+            const parts = val.split(" ");
+            if (parts.length < 2) {
+                showFeedback("Indiquez le prénom ET le nom !", "text-yellow-400");
+                return;
+            }
 
-    // On vérifie si l'une des deux correspond aux initiales du jeu
-    if (combo1 !== currentInitials && combo2 !== currentInitials) {
-        showFeedback(`Les initiales ne correspondent pas !`, "text-red-400");
-        return;
-    }
+            const pInitial = parts[0][0].toUpperCase();
+            const nInitial = parts[parts.length - 1][0].toUpperCase();
+            
+            // Vérification flexible : Prénom Nom ou Nom Prénom
+            const matchNormal = (pInitial + nInitial === currentInitials);
+            const matchReverse = (nInitial + pInitial === currentInitials);
 
-    // ... reste du code pour l'appel API Wikipédia
-}
+            if (!matchNormal && !matchReverse) {
+                showFeedback(`Incohérent avec ${currentInitials}`, "text-red-400");
+                return;
+            }
 
-            // Appel API Wikipédia
-            btn.innerText = "Vérification...";
+            btn.innerText = "Recherche Wikipédia...";
             btn.disabled = true;
 
             try {
@@ -129,22 +130,22 @@ async function verifyAnswer() {
                 if (data.type === "standard") {
                     score += 10;
                     document.getElementById('score').innerText = score;
-                    showFeedback(`Bravo ! C'est bien ${data.title}`, "text-green-400");
+                    showFeedback(`Correct ! C'est bien ${data.title}`, "text-green-400");
                     if (data.thumbnail) {
                         wikiImg.src = data.thumbnail.source;
                         wikiImg.classList.remove('hidden');
                     }
                     clearInterval(timer);
                     gameActive = false;
-                    btn.innerText = "REJOUER";
+                    btn.innerText = "PROCHAINES INITIALES";
                     btn.disabled = false;
                 } else {
-                    showFeedback("Inconnu sur Wikipédia...", "text-red-400");
+                    showFeedback("Célébrité introuvable sur Wikipédia.", "text-red-400");
                     btn.innerText = "VÉRIFIER";
                     btn.disabled = false;
                 }
             } catch (e) {
-                showFeedback("Erreur de connexion", "text-red-400");
+                showFeedback("Erreur réseau.", "text-red-400");
                 btn.disabled = false;
             }
         }
@@ -171,7 +172,6 @@ async function verifyAnswer() {
             }
         }
 
-        // Permettre de valider avec la touche Entrée
         input.addEventListener("keypress", (e) => {
             if (e.key === "Enter") handleAction();
         });
