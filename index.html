@@ -92,24 +92,31 @@
                 }
             }, 1000);
         }
+async function verifyAnswer() {
+    const val = input.value.trim();
+    if (val.length < 3) return;
 
-        async function verifyAnswer() {
-            const val = input.value.trim();
-            if (val.length < 3) return;
+    const parts = val.split(" ");
+    if (parts.length < 2) {
+        showFeedback("Il faut un Prénom et un Nom !", "text-yellow-400");
+        return;
+    }
 
-            const parts = val.split(" ");
-            if (parts.length < 2) {
-                showFeedback("Il faut au moins un Prénom et un Nom !", "text-yellow-400");
-                return;
-            }
+    const firstChar = parts[0][0].toUpperCase();
+    const lastChar = parts[parts.length - 1][0].toUpperCase();
+    
+    // On crée les deux combinaisons possibles
+    const combo1 = firstChar + lastChar; // Prénom Nom
+    const combo2 = lastChar + firstChar; // Nom Prénom
 
-            const pInitial = parts[0][0].toUpperCase();
-            const nInitial = parts[parts.length - 1][0].toUpperCase();
+    // On vérifie si l'une des deux correspond aux initiales du jeu
+    if (combo1 !== currentInitials && combo2 !== currentInitials) {
+        showFeedback(`Les initiales ne correspondent pas !`, "text-red-400");
+        return;
+    }
 
-            if (pInitial + nInitial !== currentInitials) {
-                showFeedback(`Les initiales ne correspondent pas (${pInitial}.${nInitial})`, "text-red-400");
-                return;
-            }
+    // ... reste du code pour l'appel API Wikipédia
+}
 
             // Appel API Wikipédia
             btn.innerText = "Vérification...";
