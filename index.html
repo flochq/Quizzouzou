@@ -8,66 +8,82 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Bangers&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Poppins', sans-serif; background: #0f172a; color: white; overflow-x: hidden; }
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s ease; }
         .initials-gradient { background: linear-gradient(135deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
         #gueze-overlay { font-family: 'Bangers', cursive; display: none; }
         .blink { animation: blinker 0.6s linear infinite; }
         @keyframes blinker { 50% { opacity: 0; } }
+        
         .pop-in { animation: popIn 0.5s ease-out; }
         @keyframes popIn { 0% { transform: scale(0); } 80% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        .animate-shake { animation: shake 0.2s ease-in-out 0s 2; border-color: #ef4444 !important; }
+
+        @keyframes pulse-red {
+            0%, 100% { transform: scale(1); color: #60a5fa; }
+            50% { transform: scale(1.2); color: #ef4444; }
+        }
+        .stress-timer { animation: pulse-red 0.5s ease-in-out infinite; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
     <div id="gueze-overlay" class="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-4 pop-in">
         <h2 id="result-title" class="text-red-600 text-7xl md:text-9xl font-bold tracking-wider blink text-center">T'ES TROP GUEZ</h2>
-        <p id="final-score-display" class="text-3xl text-white mt-4 italic"></p>
+        <p id="final-score-display" class="text-3xl text-white mt-4 italic font-sans"></p>
         <div id="duel-link-container" class="mt-6 flex flex-col gap-3"></div>
-        <button onclick="location.reload()" class="mt-8 bg-white text-black font-bold px-10 py-4 rounded-full text-xl transform active:scale-95">REJOUER</button>
+        <button onclick="location.reload()" class="mt-8 bg-white text-black font-bold px-10 py-4 rounded-full text-xl font-sans transform active:scale-95">REJOUER</button>
     </div>
 
-    <div class="max-w-md w-full glass rounded-3xl p-8 shadow-2xl text-center">
-        <h1 class="text-3xl font-800 mb-2">Initiales <span class="initials-gradient">Sprint</span></h1>
+    <div id="game-card" class="max-w-md w-full glass rounded-3xl p-8 shadow-2xl text-center border border-white/10">
+        <h1 class="text-3xl font-800 mb-2 uppercase tracking-tight">Initiales <span class="initials-gradient">Sprint</span></h1>
         <p class="text-slate-400 text-sm mb-6">Trouve le MAX de noms en 120s !</p>
 
-        <div id="display-initials" class="text-7xl font-bold tracking-tighter mb-8 py-6 bg-slate-800/50 rounded-2xl shadow-inner border border-white/5">
+        <div id="display-initials" class="text-7xl font-bold tracking-tighter mb-8 py-8 bg-slate-800/50 rounded-2xl shadow-inner border border-white/5">
             ??
         </div>
 
         <div class="flex justify-between mb-6 px-4">
             <div class="text-left">
-                <p class="text-xs uppercase text-slate-500">Score</p>
-                <p id="score" class="text-2xl font-bold">0</p>
+                <p class="text-xs uppercase text-slate-500 font-bold tracking-widest">Score</p>
+                <p id="score" class="text-3xl font-bold">0</p>
             </div>
             <div class="text-right">
-                <p class="text-xs uppercase text-slate-500">Timer Global</p>
-                <p id="timer" class="text-2xl font-bold text-sky-400">2:00</p>
+                <p class="text-xs uppercase text-slate-500 font-bold tracking-widest">Temps</p>
+                <p id="timer" class="text-3xl font-bold text-sky-400">2:00</p>
             </div>
         </div>
 
         <div class="space-y-4">
             <input type="text" id="user-input" placeholder="Prénom Nom" 
-                   class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-4 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all text-center text-xl">
+                   class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-4 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all text-center text-xl font-semibold">
             
             <button id="btn-action" onclick="handleAction()" 
-                    class="w-full bg-sky-500 hover:bg-sky-400 text-white font-bold py-4 rounded-xl transition-all transform active:scale-95 text-lg">
+                    class="w-full bg-sky-500 hover:bg-sky-400 text-white font-bold py-4 rounded-xl transition-all transform active:scale-95 text-lg shadow-lg shadow-sky-500/20">
                 DÉMARRER LE SPRINT
             </button>
 
             <button id="btn-skip" onclick="skipTurn()" disabled
-                    class="w-full bg-slate-800 text-slate-500 font-bold py-2 rounded-xl text-sm transition-all cursor-not-allowed">
-                PASSER (bloqué 20s)
+                    class="w-full bg-slate-800 text-slate-600 font-bold py-2 rounded-xl text-xs transition-all cursor-not-allowed uppercase tracking-widest">
+                Passer (20s)
             </button>
         </div>
 
-        <div id="feedback" class="mt-6 hidden h-24 overflow-hidden">
-            <div id="feedback-msg" class="text-sm font-medium mb-2"></div>
-            <img id="wiki-img" src="" class="w-16 h-16 rounded-full mx-auto object-cover border-2 border-sky-500 hidden">
+        <div id="feedback" class="mt-6 hidden h-28 flex flex-col justify-center">
+            <div id="feedback-msg" class="text-sm font-medium mb-3"></div>
+            <img id="wiki-img" src="" class="w-16 h-16 rounded-full mx-auto object-cover border-2 border-sky-500 hidden shadow-md">
         </div>
     </div>
 
     <audio id="snd-success" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3"></audio>
-    <audio id="snd-fail" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio>
+    <audio id="snd-bonk" src="https://www.myinstants.com/media/sounds/bonk.mp3"></audio>
+    <audio id="snd-tictac" src="https://assets.mixkit.co/active_storage/sfx/2569/2569-preview.mp3" loop></audio>
 
     <script>
         let currentInitials = "";
@@ -85,18 +101,19 @@
         const feedback = document.getElementById('feedback');
         const wikiImg = document.getElementById('wiki-img');
         const overlay = document.getElementById('gueze-overlay');
+        const card = document.getElementById('game-card');
+        const timerDisplay = document.getElementById('timer');
 
-        // Sons
         const playSuccess = () => document.getElementById('snd-success').play();
-        const playFail = () => document.getElementById('snd-fail').play();
+        const playBonk = () => document.getElementById('snd-bonk').play();
+        const ticTac = document.getElementById('snd-tictac');
 
         window.onload = () => {
             const params = new URLSearchParams(window.location.search);
             if (params.has('challenge')) {
                 isChallenge = true;
                 opponentScore = parseInt(params.get('score'));
-                document.getElementById('feedback-msg').innerText = `DÉFI : Bats ${opponentScore} !`;
-                document.getElementById('feedback').classList.remove('hidden');
+                showFeedback(`DÉFI : Bats le score de ${opponentScore} !`, "text-yellow-400 font-bold text-base");
             }
         };
 
@@ -107,21 +124,22 @@
             input.value = "";
             input.focus();
             
-            // Gestion bouton passer
             btnSkip.disabled = true;
             btnSkip.classList.add('cursor-not-allowed', 'text-slate-600');
-            btnSkip.innerText = "PASSER (Attendre 20s)";
+            btnSkip.classList.remove('bg-slate-700', 'text-white');
             
             let skipSeconds = 20;
+            btnSkip.innerText = `PASSER (${skipSeconds}s)`;
+            
             clearInterval(skipTimer);
             skipTimer = setInterval(() => {
                 skipSeconds--;
-                btnSkip.innerText = `PASSER (encore ${skipSeconds}s)`;
+                btnSkip.innerText = `PASSER (${skipSeconds}s)`;
                 if(skipSeconds <= 0) {
                     clearInterval(skipTimer);
                     btnSkip.disabled = false;
                     btnSkip.classList.remove('cursor-not-allowed', 'text-slate-600');
-                    btnSkip.classList.add('text-white', 'bg-slate-700');
+                    btnSkip.classList.add('bg-slate-700', 'text-white');
                     btnSkip.innerText = "PASSER CE TOUR ⏭️";
                 }
             }, 1000);
@@ -137,7 +155,14 @@
             gameActive = true;
             timer = setInterval(() => {
                 timeLeft--;
-                document.getElementById('timer').innerText = Math.floor(timeLeft/60) + ":" + (timeLeft%60).toString().padStart(2, '0');
+                timerDisplay.innerText = Math.floor(timeLeft/60) + ":" + (timeLeft%60).toString().padStart(2, '0');
+                
+                // Stress à 10 secondes
+                if (timeLeft === 10) {
+                    ticTac.play();
+                    timerDisplay.classList.add('stress-timer');
+                }
+
                 if (timeLeft <= 0) finishGame();
             }, 1000);
             generateNewTurn();
@@ -145,38 +170,71 @@
         }
 
         async function verifyAnswer() {
-            const val = input.value.trim();
-            if (val.length < 3) return;
-            const p = val.split(" ");
-            if (p.length < 2) { showFeedback("Prénom + Nom requis !", "text-yellow-400"); return; }
+            const rawVal = input.value.trim();
+            if (rawVal.length < 3) return;
+
+            const formattedName = rawVal.split(" ")
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join("_");
+
+            const p = rawVal.split(" ");
+            if (p.length < 2) { 
+                showFeedback("Indique un Prénom et un Nom !", "text-yellow-400"); 
+                playBonk();
+                triggerShake();
+                return; 
+            }
 
             const pi = p[0][0].toUpperCase();
             const ni = p[p.length-1][0].toUpperCase();
+            
             if ((pi+ni !== currentInitials) && (ni+pi !== currentInitials)) {
-                showFeedback("Initiales incorrectes !", "text-red-400"); return;
+                playBonk();
+                triggerShake();
+                showFeedback(`Incohérent avec ${currentInitials}`, "text-red-400"); 
+                return;
             }
 
             btn.disabled = true;
+            btn.innerText = "...";
+
             try {
-                const res = await fetch(`https://fr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(val)}`);
+                const res = await fetch(`https://fr.wikipedia.org/api/rest_v1/page/summary/${formattedName}`);
                 const data = await res.json();
-                if (data.type === "standard") {
+
+                if (data.type === "standard" || data.type === "disambiguation") {
                     playSuccess();
                     score++;
                     document.getElementById('score').innerText = score;
-                    showFeedback(`+1 : ${data.title}`, "text-green-400");
-                    if (data.thumbnail) { wikiImg.src = data.thumbnail.source; wikiImg.classList.remove('hidden'); }
+                    showFeedback(`✅ +1 : ${data.title}`, "text-green-400 font-bold");
+                    if (data.thumbnail) { 
+                        wikiImg.src = data.thumbnail.source; 
+                        wikiImg.classList.remove('hidden'); 
+                    } else {
+                        wikiImg.classList.add('hidden');
+                    }
                     generateNewTurn();
                 } else {
-                    playFail();
-                    showFeedback("Inconnu sur Wiki...", "text-red-400");
+                    playBonk();
+                    triggerShake();
+                    showFeedback("Inconnu sur Wikipédia...", "text-red-400");
                 }
-            } catch (e) { console.log(e); }
+            } catch (e) { 
+                showFeedback("Erreur API Wikipédia", "text-red-400");
+            }
+            btn.innerText = "VÉRIFIER";
             btn.disabled = false;
+        }
+
+        function triggerShake() {
+            card.classList.add('animate-shake');
+            setTimeout(() => card.classList.remove('animate-shake'), 400);
         }
 
         function finishGame() {
             clearInterval(timer);
+            ticTac.pause();
+            ticTac.currentTime = 0;
             gameActive = false;
             overlay.style.display = 'flex';
             document.getElementById('final-score-display').innerText = `Ton score : ${score} noms trouvés`;
@@ -186,17 +244,17 @@
                 if (score > opponentScore) {
                     title.innerText = "TU L'AS FUMÉ !";
                     title.className = "text-green-500 text-7xl md:text-9xl font-bold blink text-center";
-                } else {
-                    title.innerText = "T'ES TROP GUEZ";
+                } else if (score === opponentScore) {
+                    title.innerText = "ÉGALITÉ !";
+                    title.className = "text-yellow-500 text-7xl md:text-9xl font-bold blink text-center";
                 }
             }
 
-            // Lien de duel
             const shareUrl = `${window.location.origin}${window.location.pathname}?challenge=true&score=${score}`;
             const container = document.getElementById('duel-link-container');
             container.innerHTML = `
-                <button onclick="navigator.clipboard.writeText('${shareUrl}'); alert('Lien copié !')" 
-                        class="bg-sky-600 text-white px-6 py-2 rounded-full font-bold">
+                <button onclick="navigator.clipboard.writeText('${shareUrl}'); alert('Lien de duel copié !')" 
+                        class="bg-sky-600 hover:bg-sky-500 text-white px-8 py-3 rounded-full font-bold transition">
                     🔗 Copier le lien de duel
                 </button>
             `;
@@ -210,7 +268,8 @@
         function showFeedback(msg, color) {
             feedback.classList.remove('hidden');
             const m = document.getElementById('feedback-msg');
-            m.innerText = msg; m.className = `text-sm font-medium mb-2 ${color}`;
+            m.innerText = msg; 
+            m.className = `text-sm font-medium mb-3 ${color}`;
         }
 
         input.addEventListener("keypress", (e) => { if(e.key === "Enter") handleAction(); });
